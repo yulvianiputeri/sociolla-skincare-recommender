@@ -171,7 +171,7 @@ def load_data():
         for file, category in DATA_FILES.items():
             try:
                 # Baca file CSV
-                df = pd.read_csv(f'data/{file}', **CSV_PARAMS)
+                df = pd.read_csv(f'./data/{file}', **CSV_PARAMS)
                 df.columns = df.columns.str.strip()
                 df['category'] = category
                 dataframes[file] = df
