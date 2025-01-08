@@ -18,7 +18,7 @@ st.set_page_config(
 
 def get_recommendations(product_name, data, n_recommendations=5):
     """
-    Mendapatkan rekomendasi produk berdasarkan rating dan jumlah review
+    Mendapatkan rekomendasi produk dengan perhitungan skor detail
     """
     try:
         # 1. Dapatkan info produk yang dipilih
@@ -26,70 +26,70 @@ def get_recommendations(product_name, data, n_recommendations=5):
         selected_category = selected_product['category']
         selected_brand = selected_product['brand']
         
-        # Debug info
-        #st.write("Debug - Selected product info:")
-        #st.write(f"- Category: {selected_category}")
-        #st.write(f"- Brand: {selected_brand}")
-
         # 2. Filter produk dengan kategori yang sama tapi brand berbeda
         filtered_data = data[
             (data['category'] == selected_category) & 
             (data['brand'] != selected_brand)
-        ].copy()
+        ].copy()  # Using .copy() to avoid SettingWithCopyWarning
         
-        # Debug info
-        #st.write(f"Debug - Found {len(filtered_data)} products in same category from other brands")
-
         if filtered_data.empty:
             st.warning("Tidak ditemukan produk lain dalam kategori yang sama")
             return pd.DataFrame()
 
-        # 3. Bersihkan dan konversi data review
+        # 3. Hitung skor review
         filtered_data['clean_reviews'] = filtered_data['number_of_reviews'].apply(clean_reviews)
-        
-        # Hitung skor
         filtered_data['review_weight'] = np.log1p(filtered_data['clean_reviews'])
         max_reviews = filtered_data['review_weight'].max()
         if max_reviews > 0:
             filtered_data['review_weight'] = filtered_data['review_weight'] / max_reviews
 
-        # Normalisasi rating
+        # 4. Hitung skor rating
         filtered_data['rating_normalized'] = pd.to_numeric(filtered_data['rating'], errors='coerce').fillna(0)
         max_rating = filtered_data['rating_normalized'].max()
         if max_rating > 0:
             filtered_data['rating_normalized'] = filtered_data['rating_normalized'] / max_rating
 
-        # Skor gabungan (50% rating, 50% review weight)
-        filtered_data['score'] = (
+        # 5. Hitung skor akhir
+        filtered_data['similarity_score'] = (
             filtered_data['rating_normalized'] * 0.5 +
             filtered_data['review_weight'] * 0.5
         )
 
-        # 4. Urutkan rekomendasi
+        # 6. Preserve all original columns including repurchase data
+        # Make sure these columns exist in filtered_data
+        repurchase_cols = ['repurchase_yes', 'repurchase_no', 'repurchase_maybe']
+        for col in repurchase_cols:
+            if col not in filtered_data.columns:
+                filtered_data[col] = data[col]
+
+        # 7. Urutkan rekomendasi
         recommendations = filtered_data.sort_values(
-            by=['score', 'rating', 'clean_reviews'],
+            by=['similarity_score', 'rating', 'clean_reviews'],
             ascending=[False, False, False]
         )
-
-        # Debug info
-        #st.write("\nDebug - Top 3 recommendations scores:")
-        #for _, row in recommendations.head(3).iterrows():
-        #    st.write(f"- {row['product_name']}: rating={row['rating']}, reviews={row['number_of_reviews']} ({row['clean_reviews']}), score={row['score']:.2f}")
-
-        # Kembalikan rekomendasi tanpa kolom tambahan
-        final_recommendations = recommendations.drop(columns=[
-            'clean_reviews', 'review_weight', 'rating_normalized', 'score'
-        ], errors='ignore')
         
-        return final_recommendations.head(n_recommendations)
+        # Debug print untuk memastikan data repurchase ada
+        print("\nDebug Recommendations Data:")
+        print("Columns:", recommendations.columns.tolist())
+        print("\nSample repurchase data:")
+        for col in repurchase_cols:
+            print(f"{col} values:", recommendations[col].head().tolist())
+        
+        # Tampilkan detail perhitungan
+        st.write("### 📊 Detail Perhitungan Skor")
+        st.write("""
+        Skor kemiripan dihitung berdasarkan:
+        1. **Rating Score (50%)**: Rating produk yang dinormalisasi
+        2. **Review Score (50%)**: Jumlah review yang dinormalisasi (dalam skala logaritmik)
+        
+        Formula: `Final Score = (Rating Score × 0.5) + (Review Score × 0.5)`
+        """)
+        
+        return recommendations.head(n_recommendations)
 
     except Exception as e:
         st.error(f"Error dalam pembuatan rekomendasi: {str(e)}")
-        # Tambahkan debugging info
-        #st.write("Debug info:")
-        #st.write("- Selected product name:", product_name)
-        #st.write("- Data columns:", data.columns.tolist())
-        #st.write("- Data shape:", data.shape)
+        print(f"Debug - Error detail: {str(e)}")  # Add detailed error logging
         return pd.DataFrame()
 
 def main():
