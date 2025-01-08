@@ -64,11 +64,55 @@ def format_price(price_str):
     except:
         return price_str
 
+
+def clean_repurchase(x):
+    """
+    Membersihkan dan mengubah data pembelian ulang dari format 'Yes (87)' menjadi angka 87
+    """
+    try:
+        if pd.isna(x) or str(x).lower() == 'null' or str(x).strip() == '':
+            return 0
+            
+        # Ubah input ke string untuk memastikan
+        nilai_str = str(x).strip()
+        
+        # Coba cari angka dalam kurung terlebih dahulu
+        pola_kurung = re.search(r'\((\d+)\)', nilai_str)
+        if pola_kurung:
+            return int(pola_kurung.group(1))
+        
+        # Jika gagal, coba cari angka apapun
+        angka = re.findall(r'\d+', nilai_str)
+        if angka:
+            return int(angka[0])
+            
+        # Jika Yes/No/Maybe tanpa angka, anggap 1
+        if any(keyword in nilai_str.lower() for keyword in ['yes', 'no', 'maybe']):
+            return 1
+            
+        return 0
+        
+    except Exception as e:
+        print(f"Error dalam clean_repurchase untuk nilai '{x}': {str(e)}")
+        return 0
+
+
 def clean_data(df):
     """
     Membersihkan dan memproses DataFrame
     """
     try:
+        # Print data awal
+        print("\n=== Data Awal ===")
+        print("Columns:", df.columns.tolist())
+        print("\nData repurchase sebelum dibersihkan:")
+        if 'repurchase_yes' in df.columns:
+            print("\nSample repurchase_yes:", df['repurchase_yes'].head())
+        if 'repurchase_no' in df.columns:
+            print("\nSample repurchase_no:", df['repurchase_no'].head())
+        if 'repurchase_maybe' in df.columns:
+            print("\nSample repurchase_maybe:", df['repurchase_maybe'].head())
+
         # Bersihkan kolom string dasar
         string_columns = ['brand', 'product_name', 'category'] 
         for col in string_columns:
@@ -78,23 +122,18 @@ def clean_data(df):
 
         # Simpan dan bersihkan harga
         if 'price' in df.columns:
-            # Simpan format display original
             df['price_display'] = df['price'].astype(str)
             df['price_display'] = df['price_display'].apply(format_price)
             
-            # Bersihkan nilai numerik untuk perhitungan
             def extract_numeric_price(price_str):
                 try:
-                    # Hapus 'Rp' dan karakter non-numerik
                     price_str = str(price_str).replace('Rp', '').strip()
                     if '-' in price_str:
-                        # Jika range, ambil nilai tengah
                         parts = price_str.split('-')
                         if len(parts) == 2:
                             low = float(''.join(c for c in parts[0] if c.isdigit() or c == '.'))
                             high = float(''.join(c for c in parts[1] if c.isdigit() or c == '.'))
                             return (low + high) / 2
-                    # Jika single price
                     return float(''.join(c for c in price_str if c.isdigit() or c == '.'))
                 except:
                     return np.nan
@@ -122,40 +161,41 @@ def clean_data(df):
             median_rating = df['rating'].median()
             df['rating'] = df['rating'].fillna(median_rating)
 
-        # Bersihkan number_of_reviews menggunakan fungsi global
+        # Bersihkan number_of_reviews
         if 'number_of_reviews' in df.columns:
             df['number_of_reviews'] = df['number_of_reviews'].apply(clean_reviews)
             df['number_of_reviews'] = pd.to_numeric(df['number_of_reviews'], errors='coerce').fillna(0).astype(int)
 
-        # Bersihkan repurchase columns
+               # Bersihkan repurchase columns
+        print("\nMembersihkan data repurchase...")
         repurchase_cols = ['repurchase_yes', 'repurchase_no', 'repurchase_maybe']
         for col in repurchase_cols:
             if col not in df.columns:
-                df[col] = 0  # Buat kolom baru jika belum ada
-            
-            def clean_repurchase(x):
-                try:
-                    if pd.isna(x) or str(x).lower() == 'null':
-                        return 0
-                    if isinstance(x, str):
-                        match = re.search(r'\((\d+)\)', x)
-                        return int(match.group(1)) if match else 0
-                    return int(abs(float(x)))
-                except:
-                    return 0
+                print(f"Kolom {col} tidak ditemukan, membuat kolom baru")
+                df[col] = 0
+            else:
+                print(f"\nMemproses {col}:")
+                print("Sample data sebelum cleaning:")
+                print(df[col].head())
                 
-            df[col] = df[col].apply(clean_repurchase)
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
+                # Bersihkan data dengan menampilkan proses
+                df[col] = df[col].apply(lambda x: print(f"Cleaning {x} -> {clean_repurchase(x)}") or clean_repurchase(x))
+                
+                # Pastikan tipe data integer
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
+                
+                print("\nSample data setelah cleaning:")
+                print(df[col].head())
 
-        # Hitung repurchase rate
-        total_repurchase = df['repurchase_yes'] + df['repurchase_no'] + df['repurchase_maybe']
-        df['repurchase_rate'] = np.where(total_repurchase > 0,
-                                        (df['repurchase_yes'] / total_repurchase) * 100,
-                                        0)
+        # Simpan data repurchase asli untuk debugging
+        print("\nSample data final repurchase:")
+        sample_data = df[['product_name'] + repurchase_cols].head()
+        print(sample_data.to_string())
 
         return df
 
     except Exception as e:
+        print(f"Error dalam clean_data: {str(e)}")
         st.error(f"Error dalam clean_data: {str(e)}")
         return df
 
@@ -171,26 +211,32 @@ def load_data():
         for file, category in DATA_FILES.items():
             try:
                 # Baca file CSV
-                df = pd.read_csv(f'./data/{file}', **CSV_PARAMS)
+                print(f"\nMembaca file: {file}")
+                df = pd.read_csv(f'data/{file}', **CSV_PARAMS)
                 df.columns = df.columns.str.strip()
                 df['category'] = category
+                print(f"Columns dalam {file}:", df.columns.tolist())
                 dataframes[file] = df
                 
             except Exception as e:
                 st.error(f"Error membaca {file}: {str(e)}")
+                print(f"Error lengkap membaca {file}: {str(e)}")
                 continue
 
         if not dataframes:
             raise Exception("Tidak ada data yang bisa dimuat dari file manapun")
 
         # Gabung semua dataframe
+        print("\nMenggabungkan dataframes...")
         all_data = pd.concat(dataframes.values(), ignore_index=True)
         
         # Bersihkan data
+        print("\nMembersihkan data...")
         all_data = clean_data(all_data)
 
         return all_data
 
     except Exception as e:
         st.error(f"Error dalam load_data: {str(e)}")
+        print(f"Error lengkap dalam load_data: {str(e)}")
         return None
