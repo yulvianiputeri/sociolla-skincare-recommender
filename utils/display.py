@@ -25,14 +25,12 @@ def display_product_card(product, rank=None):
             if 'rating_normalized' in product:
                 rating_score = float(product['rating_normalized']) * 100
                 st.write(f"📊 Rating Score: {rating_score:.1f}%")
-<<<<<<< HEAD
+
             
             # Tampilkan jenis kulit yang cocok
             if 'suitable_skin_types' in product and pd.notna(product['suitable_skin_types']):
                 st.write(f"👤 Cocok untuk: {product['suitable_skin_types']}")
-=======
->>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
-        
+
         with col2:
             # Format dan tampilkan harga
             if 'price_display' in product and not pd.isna(product['price_display']):
@@ -69,13 +67,11 @@ def display_product_card(product, rank=None):
             else:
                 st.write("👥 Review: Belum ada review")
                 st.write("📈 Review Score: 0%")
-<<<<<<< HEAD
             
             # Tampilkan masalah kulit yang diatasi
             if 'targets_skin_concerns' in product and pd.notna(product['targets_skin_concerns']):
                 st.write(f"🎯 Mengatasi: {product['targets_skin_concerns']}")
-=======
->>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
+
 
         with col3:
             # Tampilkan skor akhir dan komponennya
@@ -85,7 +81,7 @@ def display_product_card(product, rank=None):
                 st.write("💡 **Komponen Skor:**")
                 st.write(f"- Rating: 50% bobot")
                 st.write(f"- Review: 50% bobot")
-<<<<<<< HEAD
+
             
             # Tampilkan bahan utama
             if 'key_ingredients' in product and pd.notna(product['key_ingredients']):
@@ -97,9 +93,7 @@ def display_product_card(product, rank=None):
             if preference_explanation:
                 st.info(preference_explanation)
         
-=======
-                
->>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
+     
         # Tampilkan detail pembelian ulang dalam expander
         with st.expander("🔄 Detail Pembelian Ulang"):
             yes_count = product.get('repurchase_yes', 0)
@@ -276,9 +270,8 @@ def apply_filters(data, selected_category, selected_brand, price_range):
         (filtered_data['price'] <= max_price)
     ]
     
-<<<<<<< HEAD
+
     return filtered_data
-=======
+
     return filtered_data
     
->>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
