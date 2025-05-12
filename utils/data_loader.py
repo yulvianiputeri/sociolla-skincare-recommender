@@ -167,7 +167,11 @@ def clean_data(df):
             df['number_of_reviews'] = df['number_of_reviews'].apply(clean_reviews)
             df['number_of_reviews'] = pd.to_numeric(df['number_of_reviews'], errors='coerce').fillna(0).astype(int)
 
+<<<<<<< HEAD
         # Bersihkan repurchase columns
+=======
+               # Bersihkan repurchase columns
+>>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
         print("\nMembersihkan data repurchase...")
         repurchase_cols = ['repurchase_yes', 'repurchase_no', 'repurchase_maybe']
         for col in repurchase_cols:
@@ -192,9 +196,12 @@ def clean_data(df):
         print("\nSample data final repurchase:")
         sample_data = df[['product_name'] + repurchase_cols].head()
         print(sample_data.to_string())
+<<<<<<< HEAD
 
         # Perkaya data dengan atribut jenis kulit dan masalah kulit
         df = enhance_product_data(df)
+=======
+>>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
 
         return df
 
@@ -243,4 +250,8 @@ def load_data():
     except Exception as e:
         st.error(f"Error dalam load_data: {str(e)}")
         print(f"Error lengkap dalam load_data: {str(e)}")
+<<<<<<< HEAD
         return None
+=======
+        return None
+>>>>>>> ea492ad2553c40ec1bb42a3a77ce96e6ef9bf41a
