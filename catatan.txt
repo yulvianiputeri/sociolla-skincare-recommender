@@ -1,0 +1,20 @@
+Berdasarkan perubahan yang kita implementasikan, judul yang lebih sesuai untuk proyek Anda sekarang adalah:
+
+# Sistem Rekomendasi Skincare Menggunakan Metode Hybrid Filtering pada Ecommerce Sociolla
+
+Alasan perubahan judul ini:
+
+1. **Dari Item-Based Collaborative Filtering menjadi Hybrid Filtering**:
+   - Sebelumnya hanya menggunakan pendekatan collaborative filtering sederhana
+   - Sekarang menggunakan pendekatan hybrid yang menggabungkan content-based filtering (40%) dan similarity-based filtering (60%)
+
+2. **Komponen Utama dalam Sistem Baru**:
+   - Content-Based Filtering: Menganalisis kesamaan fitur produk (kategori, brand)
+   - Similarity-Based Filtering: Menganalisis rating dan jumlah review
+   - Pendekatan hybrid ini memberikan rekomendasi yang lebih komprehensif dan akurat
+
+3. **Penekanan pada Hybrid Approach**:
+   - Pendekatan hybrid adalah peningkatan dari metode tunggal seperti item-based collaborative filtering
+   - Sistem sekarang mempertimbangkan baik kemiripan konten maupun pola perilaku pengguna
+
+Judul ini secara akurat mencerminkan peningkatan signifikan dalam metodologi yang digunakan dalam proyek Anda, sambil tetap mempertahankan konteks aplikasi pada platform e-commerce Sociolla.

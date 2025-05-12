@@ -3,23 +3,35 @@ import math
 import pandas as pd
 import plotly.graph_objects as go
 from utils.data_loader import clean_reviews, format_price
+from utils.user_preferences import explain_preference_match
 
 def display_product_card(product, rank=None):
     """
-    Menampilkan informasi produk menggunakan komponen Streamlit dengan perbaikan
+    Menampilkan informasi produk dengan detail skor dan metrik
     """
     try:
         rank_text = f"Peringkat #{rank} - " if rank else ""
         
         st.subheader(f"{rank_text}{product['brand']} - {product['product_name']}")
         
-        col1, col2 = st.columns(2)
+        # Buat 3 kolom untuk informasi utama
+        col1, col2, col3 = st.columns(3)
+        
         with col1:
             st.write(f"✨ Kategori: {product['category']}")
-            st.write(f"⭐ Penilaian: {float(product['rating']):.1f}/5.0")
+            st.write(f"⭐ Rating: {float(product['rating']):.1f}/5.0")
+            
+            # Tampilkan rating score
+            if 'rating_normalized' in product:
+                rating_score = float(product['rating_normalized']) * 100
+                st.write(f"📊 Rating Score: {rating_score:.1f}%")
+            
+            # Tampilkan jenis kulit yang cocok
+            if 'suitable_skin_types' in product and pd.notna(product['suitable_skin_types']):
+                st.write(f"👤 Cocok untuk: {product['suitable_skin_types']}")
         
         with col2:
-            # Format harga
+            # Format dan tampilkan harga
             if 'price_display' in product and not pd.isna(product['price_display']):
                 price_display = str(product['price_display'])
                 if '-' in price_display:
@@ -38,7 +50,7 @@ def display_product_card(product, rank=None):
                 except:
                     st.write("💰 Harga: Tidak tersedia")
             
-            # Tampilkan review - perbaikan logika
+            # Tampilkan jumlah review dan skor review
             review_count = clean_reviews(str(product.get('number_of_reviews', '0')))
             if review_count > 0:
                 if review_count >= 1000:
@@ -46,17 +58,54 @@ def display_product_card(product, rank=None):
                 else:
                     formatted_review = f"{review_count:,}".replace(",", ".")
                 st.write(f"👥 Review: {formatted_review}")
+                
+                # Tampilkan review weight score jika ada
+                if 'review_weight' in product:
+                    review_score = float(product['review_weight']) * 100
+                    st.write(f"📈 Review Score: {review_score:.1f}%")
             else:
                 st.write("👥 Review: Belum ada review")
+                st.write("📈 Review Score: 0%")
+            
+            # Tampilkan masalah kulit yang diatasi
+            if 'targets_skin_concerns' in product and pd.notna(product['targets_skin_concerns']):
+                st.write(f"🎯 Mengatasi: {product['targets_skin_concerns']}")
 
-        # Tampilkan informasi repurchase berdasarkan tab
-        repurchase_yes = clean_reviews(str(product.get('repurchase_yes', '0')))
-        repurchase_no = clean_reviews(str(product.get('repurchase_no', '0')))
-        repurchase_maybe = clean_reviews(str(product.get('repurchase_maybe', '0')))
+        with col3:
+            # Tampilkan skor akhir dan komponennya
+            if 'similarity_score' in product:
+                similarity_percentage = float(product['similarity_score']) * 100
+                st.write(f"🎯 Total Skor: {similarity_percentage:.1f}%")
+                st.write("💡 **Komponen Skor:**")
+                st.write(f"- Rating: 50% bobot")
+                st.write(f"- Review: 50% bobot")
+            
+            # Tampilkan bahan utama
+            if 'key_ingredients' in product and pd.notna(product['key_ingredients']):
+                st.write(f"🧪 Bahan Utama: {product['key_ingredients']}")
+        
+        # Penjelasan kesesuaian preferensi
+        if 'user_preferences' in st.session_state and st.session_state.user_preferences:
+            preference_explanation = explain_preference_match(product, st.session_state.user_preferences)
+            if preference_explanation:
+                st.info(preference_explanation)
+        
+        # Tampilkan detail pembelian ulang dalam expander
+        with st.expander("🔄 Detail Pembelian Ulang"):
+            yes_count = product.get('repurchase_yes', 0)
+            no_count = product.get('repurchase_no', 0)
+            maybe_count = product.get('repurchase_maybe', 0)
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.info(f"✅ {int(yes_count):,}".replace(",", ".") + "\nAkan beli lagi")
+            with col2:
+                st.error(f"❌ {int(no_count):,}".replace(",", ".") + "\nTidak akan beli lagi")
+            with col3:
+                st.warning(f"❓ {int(maybe_count):,}".replace(",", ".") + "\nMungkin beli lagi")
 
-        st.info(f"🔄 {repurchase_yes:,}".replace(",", ".") + " pengguna akan membeli kembali")
-        st.warning(f"❌ {repurchase_no}" + " pengguna tidak akan membeli kembali")
-        st.info(f"❓ {repurchase_maybe:,}".replace(",", ".") + " pengguna mungkin akan membeli kembali")
+        # Tambahkan garis pemisah
+        st.markdown("---")
         
     except Exception as e:
         st.error(f"Error displaying product card: {str(e)}")
@@ -73,7 +122,7 @@ def paginate_dataframe(df, page_number, page_size):
 
 def display_metrics(data):
     """
-    Menampilkan metrik statistik dengan penanganan error
+    Menampilkan metrik statistik dengan format harga yang benar
     """
     try:
         col1, col2, col3, col4 = st.columns(4)
@@ -100,7 +149,7 @@ def display_metrics(data):
         # Harga Rata-rata
         with col3:
             try:
-                avg_price = float(data['price'].mean())
+                avg_price = float(data['price'].mean()) * 1000  # Multiply by 1000 to get the full price
                 st.metric(
                     "Harga Rata-rata", 
                     f"Rp {int(avg_price):,}".replace(",", ".")
@@ -111,7 +160,6 @@ def display_metrics(data):
         # Total Review
         with col4:
             try:
-                # Convert to numeric first to handle any string values
                 data['number_of_reviews'] = pd.to_numeric(data['number_of_reviews'], errors='coerce')
                 total_reviews = int(data['number_of_reviews'].sum())
                 st.metric(
@@ -123,10 +171,6 @@ def display_metrics(data):
                 
     except Exception as e:
         st.error(f"Error displaying metrics: {str(e)}")
-        # Optional: tampilkan debug info
-        # st.write("Data shape:", data.shape)
-        # st.write("Data columns:", data.columns.tolist())
-        # st.write("Data types:", data.dtypes)
 
 def create_price_range_analysis(data):
     """
@@ -223,4 +267,3 @@ def apply_filters(data, selected_category, selected_brand, price_range):
     ]
     
     return filtered_data
-    

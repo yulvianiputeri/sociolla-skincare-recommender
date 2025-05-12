@@ -1,0 +1,26 @@
+sociolla-skincare-recommender/
+├── app.py
+├── requirements.txt
+├── README.md
+├── config/
+│   └── constants.py
+├── data/
+│   ├── skincare_cleanser.csv
+│   ├── skincare_mask.csv
+│   ├── skincare_moisturizer.csv
+│   ├── skincare_suncare.csv
+│   └── skincare_treatment.csv
+├── components/
+│   ├── __init__.py
+│   └── product_grid.py
+├── pages/
+│   ├── __init__.py
+│   ├── explore_page.py
+│   ├── recommendation_page.py
+│   └── analysis_page.py
+└── utils/
+    ├── __init__.py
+    ├── charts.py
+    ├── data_loader.py
+    ├── display.py
+    └── recommender.py
