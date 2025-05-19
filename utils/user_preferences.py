@@ -60,6 +60,8 @@ def show_preference_filters():
     skin_type_index = 0  # Default "Tidak dipilih"
     if current_skin_type and current_skin_type in SKIN_TYPES:
         skin_type_index = SKIN_TYPES.index(current_skin_type) + 1
+    else:
+        skin_type_index = 0 
     
     selected_skin_type = st.sidebar.selectbox(
         "Jenis Kulit Anda", 
