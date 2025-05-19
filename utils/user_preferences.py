@@ -22,6 +22,29 @@ SKIN_CONCERNS = [
     "Skin Barrier Rusak"
 ]
 
+# Definisi bahan yang dihindari
+AVOID_INGREDIENTS = [
+    "Alcohol", 
+    "Fragrance", 
+    "Paraben", 
+    "Sulfate", 
+    "Essential Oils"
+]
+
+# Definisi bahan yang disukai
+PREFERRED_INGREDIENTS = [
+    "Hyaluronic Acid", 
+    "Niacinamide", 
+    "Vitamin C", 
+    "Retinol", 
+    "Salicylic Acid",
+    "Centella Asiatica",
+    "Peptides",
+    "Ceramide",
+    "Tea Tree",
+    "AHA/BHA"
+]
+
 def show_preference_filters():
     """
     Menampilkan filter preferensi pengguna dan menyimpannya ke session state
@@ -29,55 +52,95 @@ def show_preference_filters():
     st.sidebar.markdown("---")
     st.sidebar.header("🧬 Preferensi Personal")
     
-    # Jenis Kulit
+    # Inisialisasi nilai default dari session state jika ada
+    current_preferences = st.session_state.get("user_preferences", {})
+    
+    # Jenis Kulit dengan nilai default
+    current_skin_type = current_preferences.get("skin_type", None)
+    skin_type_index = 0  # Default "Tidak dipilih"
+    if current_skin_type and current_skin_type in SKIN_TYPES:
+        skin_type_index = SKIN_TYPES.index(current_skin_type) + 1
+    
     selected_skin_type = st.sidebar.selectbox(
         "Jenis Kulit Anda", 
-        options=["Semua"] + SKIN_TYPES,
+        options=["Tidak dipilih"] + SKIN_TYPES,
+        index=skin_type_index,
         help="Pilih jenis kulit Anda untuk mendapatkan rekomendasi yang lebih relevan"
     )
     
-    # Permasalahan Kulit
+    # Permasalahan Kulit dengan nilai default
+    current_concerns = current_preferences.get("skin_concerns", [])
     selected_concerns = st.sidebar.multiselect(
         "Permasalahan Kulit", 
         options=SKIN_CONCERNS,
+        default=current_concerns,
         help="Pilih permasalahan kulit yang ingin Anda atasi"
     )
     
-    # Bahan yang dihindari
+    # Bahan yang dihindari dengan nilai default
+    current_avoid = current_preferences.get("avoid_ingredients", [])
     avoid_ingredients = st.sidebar.multiselect(
         "Bahan yang Dihindari",
-        options=["Alcohol", "Fragrance", "Paraben", "Sulfate", "Essential Oils"],
+        options=AVOID_INGREDIENTS,
+        default=current_avoid,
         help="Pilih bahan-bahan yang ingin Anda hindari dalam produk skincare"
     )
     
-    # Bahan yang disukai
+    # Bahan yang disukai dengan nilai default
+    current_preferred = current_preferences.get("preferred_ingredients", [])
     preferred_ingredients = st.sidebar.multiselect(
         "Bahan yang Disukai",
-        options=[
-            "Hyaluronic Acid", 
-            "Niacinamide", 
-            "Vitamin C", 
-            "Retinol", 
-            "Salicylic Acid",
-            "Centella Asiatica",
-            "Peptides",
-            "Ceramide",
-            "Tea Tree",
-            "AHA/BHA"
-        ],
+        options=PREFERRED_INGREDIENTS,
+        default=current_preferred,
         help="Pilih bahan-bahan yang Anda sukai dalam produk skincare"
     )
     
+    # Tombol untuk reset preferensi
+    if st.sidebar.button("🔄 Reset Preferensi"):
+        st.session_state.user_preferences = None
+        st.rerun()
+    
     # Simpan preferensi ke session state
-    if selected_skin_type != "Semua" or selected_concerns or avoid_ingredients or preferred_ingredients:
-        st.session_state.user_preferences = {
-            "skin_type": selected_skin_type if selected_skin_type != "Semua" else None,
-            "skin_concerns": selected_concerns,
-            "avoid_ingredients": avoid_ingredients,
-            "preferred_ingredients": preferred_ingredients
-        }
+    preferences = {}
+    
+    # Hanya simpan jika ada yang dipilih
+    if selected_skin_type != "Tidak dipilih":
+        preferences["skin_type"] = selected_skin_type
+    
+    if selected_concerns:
+        preferences["skin_concerns"] = selected_concerns
+        
+    if avoid_ingredients:
+        preferences["avoid_ingredients"] = avoid_ingredients
+        
+    if preferred_ingredients:
+        preferences["preferred_ingredients"] = preferred_ingredients
+    
+    # Update session state
+    if preferences:
+        st.session_state.user_preferences = preferences
     else:
         st.session_state.user_preferences = None
+        
+    # Tampilkan info singkat tentang preferensi yang dipilih
+    if st.session_state.get("user_preferences"):
+        st.sidebar.success("✅ Preferensi tersimpan!")
+        prefs = st.session_state.user_preferences
+        
+        info_text = []
+        if prefs.get("skin_type"):
+            info_text.append(f"Kulit: {prefs['skin_type']}")
+        if prefs.get("skin_concerns"):
+            info_text.append(f"Masalah: {len(prefs['skin_concerns'])} item")
+        if prefs.get("avoid_ingredients"):
+            info_text.append(f"Hindari: {len(prefs['avoid_ingredients'])} bahan")
+        if prefs.get("preferred_ingredients"):
+            info_text.append(f"Suka: {len(prefs['preferred_ingredients'])} bahan")
+        
+        if info_text:
+            st.sidebar.info("📝 " + " | ".join(info_text))
+    else:
+        st.sidebar.info("ℹ️ Belum ada preferensi yang dipilih")
         
     return st.session_state.get("user_preferences")
 

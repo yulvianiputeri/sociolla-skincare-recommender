@@ -39,9 +39,9 @@ with st.sidebar:
     
     # Tambahkan informasi tentang machine learning
     st.sidebar.markdown("---")
-    st.sidebar.write("### 🧠 Sistem Rekomendasi Cerdas")
+    st.sidebar.write("### 🧠 Sistem Rekomendasi")
     st.sidebar.info("""
-    Aplikasi ini menggunakan sistem rekomendasi cerdas yang mengkombinasikan:
+    Aplikasi ini menggunakan sistem rekomendasi yang mengkombinasikan:
     
     1. **Content-Based Filtering** - Merekomendasikan produk dengan karakteristik serupa
     
