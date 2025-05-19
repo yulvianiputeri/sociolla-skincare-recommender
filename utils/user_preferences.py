@@ -52,17 +52,24 @@ def show_preference_filters():
     st.sidebar.markdown("---")
     st.sidebar.header("🧬 Preferensi Personal")
     
-    # Inisialisasi nilai default dari session state jika ada
-    current_preferences = st.session_state.get("user_preferences", {})
+    # Pastikan 'user_preferences' ada dalam session_state
+    if 'user_preferences' not in st.session_state:
+        st.session_state.user_preferences = {}  # Inisialisasi dengan dictionary kosong jika belum ada
     
+    current_preferences = st.session_state.user_preferences
+
+    # Pastikan current_preferences bukan None dan merupakan dictionary
+    if current_preferences is None:
+        current_preferences = {}
+
     # Jenis Kulit dengan nilai default
     current_skin_type = current_preferences.get("skin_type", None)
     skin_type_index = 0  # Default "Tidak dipilih"
     if current_skin_type and current_skin_type in SKIN_TYPES:
         skin_type_index = SKIN_TYPES.index(current_skin_type) + 1
     else:
-        skin_type_index = 0 
-    
+        skin_type_index = 0
+ 
     selected_skin_type = st.sidebar.selectbox(
         "Jenis Kulit Anda", 
         options=["Tidak dipilih"] + SKIN_TYPES,
@@ -123,7 +130,7 @@ def show_preference_filters():
         st.session_state.user_preferences = preferences
     else:
         st.session_state.user_preferences = None
-        
+    
     # Tampilkan info singkat tentang preferensi yang dipilih
     if st.session_state.get("user_preferences"):
         st.sidebar.success("✅ Preferensi tersimpan!")
