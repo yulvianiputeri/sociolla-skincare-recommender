@@ -1,0 +1,7 @@
+Berikut langkah-langkah untuk membuat virtual environment dan menginstal Streamlit di dalamnya:
+
+Buat Virtual Environment:
+1. python -m venv myenv
+2. .\myenv\Scripts\Activate
+3. pip install streamlit
+4. streamlit run Home.py

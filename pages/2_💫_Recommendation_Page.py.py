@@ -70,37 +70,42 @@ if 'user_preferences' in st.session_state and st.session_state.user_preferences:
         else:
             st.write("**Permasalahan Kulit:** Tidak dipilih")
 
-# 1. Pilih kategori
-selected_category = st.selectbox(
-    "Pilih Kategori Produk",
-    options=sorted(data['category'].unique())
-)
+# Tampilkan empat elemen dalam satu baris dengan `st.columns`
+col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
-# Filter data berdasarkan kategori
-category_data = data[data['category'] == selected_category]
+with col1:
+    # Pilih kategori produk
+    selected_category = st.selectbox(
+        "Pilih Kategori Produk",
+        options=sorted(data['category'].unique())
+    )
 
-# 2. Pilih brand
-available_brands = sorted(category_data['brand'].unique())
-selected_brand = st.selectbox(
-    "Pilih Brand",
-    options=available_brands
-)
+with col2:
+    # Pilih brand produk
+    category_data = data[data['category'] == selected_category]
+    available_brands = sorted(category_data['brand'].unique())
+    selected_brand = st.selectbox(
+        "Pilih Brand",
+        options=available_brands
+    )
 
-# 3. Pilih produk dari brand tersebut
-brand_products = category_data[category_data['brand'] == selected_brand]
-selected_product = st.selectbox(
-    "Pilih Produk",
-    options=sorted(brand_products['product_name'].unique()),
-    help=f"Pilih produk {selected_category} dari brand {selected_brand}"
-)
+with col3:
+    # Pilih produk dari brand tersebut
+    brand_products = category_data[category_data['brand'] == selected_brand]
+    selected_product = st.selectbox(
+        "Pilih Produk",
+        options=sorted(brand_products['product_name'].unique()),
+        help=f"Pilih produk {selected_category} dari brand {selected_brand}"
+    )
 
-# Jumlah rekomendasi
-n_recommendations = st.slider(
-    "Jumlah rekomendasi", 
-    min_value=3, 
-    max_value=10, 
-    value=5
-)
+with col4:
+    # Jumlah rekomendasi
+    n_recommendations = st.slider(
+        "Jumlah rekomendasi", 
+        min_value=3, 
+        max_value=10, 
+        value=5
+    )
 
 # Tampilkan info produk yang dipilih
 selected_product_data = data[data['product_name'] == selected_product].iloc[0]

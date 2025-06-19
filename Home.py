@@ -71,7 +71,7 @@ Aplikasi ini menggunakan pendekatan *hybrid recommendation system* yang mengkomb
 
 ### 📱 Cara Menggunakan
 Gunakan menu di sidebar untuk menavigasi ke halaman berbeda:
-- **Explore Page** - Untuk mencari dan filter produk
+- **Home** - Untuk mencari dan filter produk
 - **Recommendation Page** - Untuk mendapatkan rekomendasi produk
 - **Analysis Page** - Untuk melihat analisis data dan insight
 """)

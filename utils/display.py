@@ -14,7 +14,6 @@ def display_product_card(product, rank=None):
         
         st.subheader(f"{rank_text}{product['brand']} - {product['product_name']}")
         
-        # Buat 3 kolom untuk informasi utama
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -75,14 +74,24 @@ def display_product_card(product, rank=None):
 
         with col3:
             # Tampilkan skor akhir dan komponennya
-            if 'similarity_score' in product:
-                similarity_percentage = float(product['similarity_score']) * 100
-                st.write(f"🎯 Total Skor: {similarity_percentage:.1f}%")
-                st.write("💡 **Komponen Skor:**")
-                st.write(f"- Rating: 50% bobot")
-                st.write(f"- Review: 50% bobot")
+            if 'similarity_score' in product and 'content_score' in product:
+                similarity_score = product['similarity_score']
+                content_score = product['content_score']
+                
+                # Pastikan nilai skor valid (tidak NaN)
+                if pd.isna(similarity_score):
+                    similarity_score = 0  # fallback ke nilai default
+                if pd.isna(content_score):
+                    content_score = 0  # fallback ke nilai default
 
-            
+                # Total Skor dihitung berdasarkan bobot similarity (60%) dan content (40%)
+                final_score = (
+                    similarity_score * 0.6 + 
+                    content_score * 0.4
+                )
+                final_score_percentage = final_score * 100
+                st.write(f"🎯 Total Skor: {final_score_percentage:.1f}%")
+
             # Tampilkan bahan utama
             if 'key_ingredients' in product and pd.notna(product['key_ingredients']):
                 st.write(f"🧪 Bahan Utama: {product['key_ingredients']}")
@@ -269,9 +278,4 @@ def apply_filters(data, selected_category, selected_brand, price_range):
         (filtered_data['price'] >= min_price) & 
         (filtered_data['price'] <= max_price)
     ]
-    
-
-    return filtered_data
-
-    return filtered_data
     
